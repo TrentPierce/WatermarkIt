@@ -22,15 +22,17 @@
             width: 80%;
             max-width: 600px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .upload-btn {
-            margin-bottom: 20px;
+        .container > * {
+            margin: 10px 0;
         }
 
         .loading-icon {
             display: none;
-            margin-top: 20px;
         }
 
         .watermarked-video-container {
@@ -50,18 +52,15 @@
         <h1>Upload a Video and Watermark</h1>
         <label for="videoInput">Select Video:</label>
         <input type="file" accept="video/*" id="videoInput">
-        <br>
         <label for="watermarkText">Watermark Text:</label>
         <input type="text" id="watermarkText" placeholder="Enter watermark text">
-        <br>
         <button class="upload-btn" onclick="uploadFile()">Upload & Watermark</button>
         <div class="loading-icon">
-            <img src="spinner.gif" alt="Loading..." width="300px" height="200px">
+            <img src="spinner.gif" alt="Loading..." width="400px" height="200px">
         </div>
         <div class="watermarked-video-container">
             <h2>Watermarked Video</h2>
             <video controls id="watermarkedVideo"></video>
-            <br>
             <a href="#" download="watermarked_video.mp4">Download Watermarked Video</a>
         </div>
     </div>
@@ -79,13 +78,13 @@
                 const loadingIcon = document.querySelector('.loading-icon');
                 loadingIcon.style.display = 'block';
 
-                fetch('https://watermarkit.fly.dev/upload', {  // Update the URL to match the server's IP and port
-    method: 'POST',
-    body: formData,
-    headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-    }
-})
+                fetch('http://localhost:3000/upload', {  // Updated URL to reference the uploads folder properly
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
                 .then(response => response.json())
                 .then(data => {
                     const watermarkedVideoContainer = document.querySelector('.watermarked-video-container');

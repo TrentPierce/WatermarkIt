@@ -9,7 +9,7 @@ const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
-const port = 8080;
+const port = 3000;
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -45,14 +45,15 @@ app.post('/upload', upload.single('file'), (req, res) => {
     // Apply watermark using ffmpeg
     ffmpeg()
         .input(originalFilePath)
-        .complexFilter(`[0:v]drawtext=text='${watermarkText}':x=W-tw-10:y=H-th-10:fontcolor=white@0.5:fontsize=24`)
+        .complexFilter(`[0:v]drawtext=text='${watermarkText}':x=W-tw-10:y=H-th-10:fontcolor=white@0.5:fontsize=32`)
         .output(watermarkedFilePath)
         .on('start', (commandLine) => {
             console.log('ffmpeg command:', commandLine);
         })
         .on('end', () => {
-            const watermarkedMediaUrl = `http://localhost:8080/${watermarkedFilePath}`;
+            const watermarkedMediaUrl = `http://localhost:3000/${watermarkedFilePath}`;
             res.json({ url: watermarkedMediaUrl });
+			console.log(watermarkedMediaUrl);
         })
         .on('error', (err, stdout, stderr) => {
             console.error('Error applying watermark:', err);
