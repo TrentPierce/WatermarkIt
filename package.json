@@ -7,7 +7,7 @@
     "start": "node server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Trent Pierce",
   "license": "ISC",
   "dependencies": {
     "canvas": "^2.11.2",

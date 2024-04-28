@@ -45,7 +45,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
     // Apply watermark using ffmpeg
     ffmpeg()
         .input(originalFilePath)
-        .complexFilter(`[0:v]drawtext=text='${watermarkText}':x=W-tw-10:y=H-th-10:fontcolor=white@0.5:fontsize=24)
+        .complexFilter(`[0:v]drawtext=text='${watermarkText}':x=W-tw-10:y=H-th-10:fontcolor=white@0.5:fontsize=24`)
         .output(watermarkedFilePath)
         .on('start', (commandLine) => {
             console.log('ffmpeg command:', commandLine);
