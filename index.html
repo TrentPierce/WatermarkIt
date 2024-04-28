@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watermark Uploader</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <h1>Upload a Video and Watermark</h1>
+    <label for="fileInput">Select Video:</label>
+    <input type="file" accept="video/*" id="fileInput">
+    <br>
+    <label for="watermarkInput">Select Watermark (PNG):</label>
+    <input type="file" accept="image/png" id="watermarkInput">
+    <br>
+    <button onclick="uploadFile()">Upload & Watermark</button>
+    <br>
+    <progress id="progressBar" value="0" max="100"></progress>
+    <div id="watermarkedVideoContainer" style="display: none;">
+        <h2>Watermarked Video</h2>
+        <video controls id="watermarkedVideo"></video>
+        <br>
+        <a id="downloadLink" href="#" download="watermarked_video.mp4">Download Watermarked Video</a>
+    </div>
+
+    <script>
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const watermarkInput = document.getElementById('watermarkInput');
+            const file = fileInput.files[0];
+            const watermark = watermarkInput.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('watermark', watermark);
+                
+                const progressBar = document.getElementById('progressBar');
+                progressBar.value = 0;
+
+                // Establish Server-Sent Events (SSE) connection
+                const eventSource = new EventSource('http://localhost:3000/upload');
+                eventSource.onmessage = function(event) {
+                    const data = event.data.split('\n');
+                    const progress = parseInt(data[0]);
+                    progressBar.value = progress;
+                    const filename = data[1].trim();
+                    if (filename) {
+                        const watermarkedVideoContainer = document.getElementById('watermarkedVideoContainer');
+                        const watermarkedVideo = document.getElementById('watermarkedVideo');
+                        const downloadLink = document.getElementById('downloadLink');
+                        const videoUrl = `http://localhost:3000/uploads/${filename}`;
+                        watermarkedVideo.src = videoUrl;
+                        watermarkedVideoContainer.style.display = 'block';
+                        downloadLink.href = videoUrl;
+                        downloadLink.style.display = 'block';
+                    }
+                };
+
+                fetch('http://localhost:3000/upload', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle response if needed
+                })
+                .catch(error => {
+                    console.error('Error uploading file:', error);
+                });
+            } else {
+                alert('Please select a video file to upload.');
+            }
+        }
+    </script>
+</body>
+</html>
