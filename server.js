@@ -9,7 +9,7 @@ const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
-const port = 3000;
+const port = 8080;
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -27,9 +27,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Endpoint to handle file uploads and return the watermarked media URL
-app.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'watermark', maxCount: 1 }]), (req, res) => {
-    const uploadedFile = req.files['file'][0];
-    const watermarkFile = req.files['watermark'] ? req.files['watermark'][0] : null;
+app.post('/upload', upload.single('file'), (req, res) => {
+    const uploadedFile = req.file;
+    const watermarkText = req.body.watermarkText;
 
     if (!uploadedFile) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -40,26 +40,19 @@ app.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'water
     const watermarkedFilePath = path.join('uploads', watermarkedFileName);
 
     console.log('Original file path:', originalFilePath);
-    console.log('Watermark file path:', watermarkFile ? watermarkFile.path : 'No watermark file provided');
+    console.log('Watermark text:', watermarkText);
 
     // Apply watermark using ffmpeg
-    const command = ffmpeg()
+    ffmpeg()
         .input(originalFilePath)
-        .input(watermarkFile.path) // Input watermark file
-        .complexFilter('[0:v][1:v]overlay=10:10') // Overlay watermark onto video
-        .output(watermarkedFilePath) // Output watermarked video file
+        .complexFilter(`[0:v]drawtext=text='${watermarkText}':x=W-tw-10:y=H-th-10:fontcolor=white@0.5:fontsize=24)
+        .output(watermarkedFilePath)
         .on('start', (commandLine) => {
             console.log('ffmpeg command:', commandLine);
         })
-        .on('progress', (progress) => {
-            // Send progress updates to the client
-            res.write(`data: ${Math.floor(progress.percent)}\n\n`);
-        })
         .on('end', () => {
-            // Finish the SSE connection
-            res.write(`data: 100\n\n`);
-            res.write(`data: ${watermarkedFileName}\n\n`); // Provide the filename to the client
-            res.end();
+            const watermarkedMediaUrl = `http://localhost:8080/${watermarkedFilePath}`;
+            res.json({ url: watermarkedMediaUrl });
         })
         .on('error', (err, stdout, stderr) => {
             console.error('Error applying watermark:', err);

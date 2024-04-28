@@ -5,71 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watermark Uploader</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .upload-btn {
+            margin-bottom: 20px;
+        }
+
+        .loading-icon {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .watermarked-video-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        @media screen and (max-width: 600px) {
+            .container {
+                width: 90%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Upload a Video and Watermark</h1>
-    <label for="fileInput">Select Video:</label>
-    <input type="file" accept="video/*" id="fileInput">
-    <br>
-    <label for="watermarkInput">Select Watermark (PNG):</label>
-    <input type="file" accept="image/png" id="watermarkInput">
-    <br>
-    <button onclick="uploadFile()">Upload & Watermark</button>
-    <br>
-    <progress id="progressBar" value="0" max="100"></progress>
-    <div id="watermarkedVideoContainer" style="display: none;">
-        <h2>Watermarked Video</h2>
-        <video controls id="watermarkedVideo"></video>
+    <div class="container">
+        <h1>Upload a Video and Watermark</h1>
+        <label for="videoInput">Select Video:</label>
+        <input type="file" accept="video/*" id="videoInput">
         <br>
-        <a id="downloadLink" href="#" download="watermarked_video.mp4">Download Watermarked Video</a>
+        <label for="watermarkText">Watermark Text:</label>
+        <input type="text" id="watermarkText" placeholder="Enter watermark text">
+        <br>
+        <button class="upload-btn" onclick="uploadFile()">Upload & Watermark</button>
+        <div class="loading-icon">
+            <img src="spinner.gif" alt="Loading..." width="300px" height="200px">
+        </div>
+        <div class="watermarked-video-container">
+            <h2>Watermarked Video</h2>
+            <video controls id="watermarkedVideo"></video>
+            <br>
+            <a href="#" download="watermarked_video.mp4">Download Watermarked Video</a>
+        </div>
     </div>
 
     <script>
         function uploadFile() {
-            const fileInput = document.getElementById('fileInput');
-            const watermarkInput = document.getElementById('watermarkInput');
-            const file = fileInput.files[0];
-            const watermark = watermarkInput.files[0];
-            if (file) {
+            const videoInput = document.getElementById('videoInput');
+            const watermarkText = document.getElementById('watermarkText').value;
+            const video = videoInput.files[0];
+            if (video) {
                 const formData = new FormData();
-                formData.append('file', file);
-                formData.append('watermark', watermark);
-                
-                const progressBar = document.getElementById('progressBar');
-                progressBar.value = 0;
+                formData.append('file', video);
+                formData.append('watermarkText', watermarkText);
 
-                // Establish Server-Sent Events (SSE) connection
-                const eventSource = new EventSource('http://localhost:3000/upload');
-                eventSource.onmessage = function(event) {
-                    const data = event.data.split('\n');
-                    const progress = parseInt(data[0]);
-                    progressBar.value = progress;
-                    const filename = data[1].trim();
-                    if (filename) {
-                        const watermarkedVideoContainer = document.getElementById('watermarkedVideoContainer');
-                        const watermarkedVideo = document.getElementById('watermarkedVideo');
-                        const downloadLink = document.getElementById('downloadLink');
-                        const videoUrl = `http://localhost:3000/uploads/${filename}`;
-                        watermarkedVideo.src = videoUrl;
-                        watermarkedVideoContainer.style.display = 'block';
-                        downloadLink.href = videoUrl;
-                        downloadLink.style.display = 'block';
-                    }
-                };
+                const loadingIcon = document.querySelector('.loading-icon');
+                loadingIcon.style.display = 'block';
 
-                fetch('http://localhost:3000/upload', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
+                fetch('http://66.241.124.231:8080/upload', {  // Update the URL to match the server's IP and port
+    method: 'POST',
+    body: formData,
+    headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+    }
+})
                 .then(response => response.json())
                 .then(data => {
-                    // Handle response if needed
+                    const watermarkedVideoContainer = document.querySelector('.watermarked-video-container');
+                    const watermarkedVideo = document.getElementById('watermarkedVideo');
+                    const downloadLink = document.querySelector('.watermarked-video-container a');
+                    watermarkedVideo.src = data.url;
+                    watermarkedVideoContainer.style.display = 'block';
+                    downloadLink.href = data.url;
+                    downloadLink.style.display = 'block';
+                    loadingIcon.style.display = 'none';
                 })
                 .catch(error => {
                     console.error('Error uploading file:', error);
+                    loadingIcon.style.display = 'none';
                 });
             } else {
                 alert('Please select a video file to upload.');
