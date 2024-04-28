@@ -30,7 +30,7 @@ _Call-to-Action buttons_
 
 
 
-[![View Example Site](https://img.shields.io/badge/View_site-GH_Pages-2ea44f?style=for-the-badge)](https://trentpierce.github.io/watermarkit/)
+[![View Example Site](https://img.shields.io/badge/View_site-GH_Pages-2ea44f?style=for-the-badge)](https://trentpierce.github.io/WatermarkIt/)
 
 </div>
 
