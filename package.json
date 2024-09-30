@@ -12,7 +12,7 @@
   "dependencies": {
     "canvas": "^2.11.2",
     "cors": "^2.8.5",
-    "express": "^4.19.2",
+    "express": "^4.21.0",
     "ffmpeg": "0.0.4",
     "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.2",
